@@ -1,5 +1,15 @@
 Just a first trial.
 
+To run, initialize the database with dbstart.py
+
+Then run signature_tweeter.py to see it in action
+
+Check out the resulting database by:
+      $sqlite3
+      >>SELECT * FROM signatures;
+
+Pretty nifty!
+
 Check out: 
 https://wwws.whitehouse.gov/petitions/!/petition/require-free-access-over-internet-scientific-journal-articles-arising-taxpayer-funded-research/wDX82FLQ
 and some data

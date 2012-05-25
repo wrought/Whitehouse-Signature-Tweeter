@@ -88,7 +88,6 @@ for entry in soup.find_all("div", {"class" : "entry entry-reg "}):
     if (row == None):
         print str(sig_num) + " not found"
         #Add signature to the DB
-        
         if (city != ""):
             c.execute("INSERT INTO signatures VALUES (null,?, ?, ?, ?, ?, ?, ?)", (wh_url_id2, str(sig_num), first_name, last_name, sig_date, city, state)) 
         else:
@@ -99,7 +98,6 @@ for entry in soup.find_all("div", {"class" : "entry entry-reg "}):
 #commit changes to the database and close the cursor        
 conn.commit()
 c.close()
-    #
 
 '''
 <div class="name">Robert G</div><!--/name-->
