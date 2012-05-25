@@ -6,6 +6,10 @@ import requests
 import json
 from bs4 import BeautifulSoup
 
+#dictionary to convert month strings to ints
+months = {'January': 1, 'February': 2, 'March': 3, 'April':4, 'May':5, 'June':6, 'July':7, 'August':8, 'September':9, 'October':10, 'November':11, 'December':12}
+
+#open db connection
 import sqlite3
 conn = sqlite3.connect('signatures.db')
 c = conn.cursor()
@@ -43,6 +47,9 @@ for entry in soup.find_all("div", {"class" : "entry entry-reg "}):
 
     # Debug:
     print "\n" + str(the_name)
+    
+    first_name = the_name.split(' ')[0]
+    last_name = the_name.split(' ')[1]
 
     # break up details into component pieces
     the_details = entry.find("div", {"class" : "details" }).get_text().replace("      ","").replace("    ","")
@@ -55,11 +62,15 @@ for entry in soup.find_all("div", {"class" : "entry entry-reg "}):
 
         # Debug
         print city + " " + state
+    else:
+        city = ""
+        state = ""
         # save city and state to sqlite db
     full_date = the_details[2].split()
-    month = full_date[0]
+    month = str(months[full_date[0]])
     day = full_date[1].replace(",","")
     year = full_date[2]
+    sig_date = str(year) + '-' + month + '-' + day
 
     # Debug:
     print month + " " + day + " " + year
@@ -68,6 +79,27 @@ for entry in soup.find_all("div", {"class" : "entry entry-reg "}):
     sig_num = int(full_sig[2].replace(',',''))
     # Debug:
     print sig_num
+
+    #database insertion
+    #verify that signature doesn't exist already
+    query = "SELECT signatures.sig_num FROM signatures WHERE signatures.sig_num =  " +  str(sig_num)
+    c.execute(query)
+    row = c.fetchone()
+    if (row == None):
+        print str(sig_num) + " not found"
+        #Add signature to the DB
+        
+        if (city != ""):
+            c.execute("INSERT INTO signatures VALUES (null,?, ?, ?, ?, ?, ?, ?)", (wh_url_id2, str(sig_num), first_name, last_name, sig_date, city, state)) 
+        else:
+            c.execute("INSERT INTO signatures VALUES (null,?, ?, ?, ?, ?, null, null)", (wh_url_id2, str(sig_num), first_name, last_name, sig_date))
+    else:
+        print str(sig_num) + " found"
+
+#commit changes to the database and close the cursor        
+conn.commit()
+c.close()
+    #
 
 '''
 <div class="name">Robert G</div><!--/name-->
