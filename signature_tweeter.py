@@ -38,15 +38,20 @@ the_text = the_text.replace('/name',"").replace("      ","")
 
 # print soup
 for entry in soup.find_all("div", {"class" : "entry-reg"}):
+    signature_dict = { "page":None, 
+                       "sig_num":None,
+                       "first_name":None,
+                       "last_initial":None,
+                       "sig_date":None,
+                       "location_city":None,
+                       "location_state":None,
+                       "location_other":None,
+                       "time_added": None}
+    #first and last name
     the_name = entry.div.string
-    # save the_name to the sqlite db
-
-    # Debug:
-
     clean_name = str(the_name).replace("  "," ").replace("   "," ")
-    first_name = clean_name.split(' ')[0]
-    last_name = clean_name.split(' ')[1]
-
+    signature_dict['first_name'] = clean_name.split(' ')[0]
+    signature_dict['last_initial'] = clean_name.split(' ')[1]
     print "\n" + clean_name
 
     # break up details into component pieces
@@ -54,50 +59,44 @@ for entry in soup.find_all("div", {"class" : "entry-reg"}):
     the_details = the_details.split('\n')
     # months = ('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
     location = the_details[1].split(',')
-    #Debug:
-    print location
+    
+    #location
     if len(location) > 1:
-        city = location[0]
-        state = location[1].replace(" ","")
+        signature_dict['location_city'] = location[0]
+        signature_dict['location_state'] = location[1].replace(" ","")
         # Debug
-        print city + " " + state
+        print signature_dict['location_city'] + " " + signature_dict['location_state']
+    elif len(location) == 1:
+        signature_dict['other_location'] = location[0]
+        print signature_dict['other_location']
     else:
-        city = ""
-        state = ""
-        # save city and state to sqlite db
-
-    if len(location) == 1:
-        state = location[0]
-        print state
-        # save state (likely country)
+        print "Location parsing error with: " + location
     full_date = the_details[2].split()
     month = str(months[full_date[0]])
     day = full_date[1].replace(",","")
     year = full_date[2]
-    sig_date = str(year) + '-' + month + '-' + day
+    signature_dict['sig_date'] = str(year) + '-' + month + '-' + day
 
     # Debug:
     print month + " " + day + " " + year
 
     full_sig = the_details[3].split()
-    sig_num = int(full_sig[2].replace(',',''))
+    signature_dict['sig_num'] = full_sig[2].replace(',','')
     # Debug:
-    print sig_num
+    print signature_dict['sig_num']
 
     #database insertion
     #verify that signature doesn't exist already
-    query = "SELECT signatures.sig_num FROM signatures WHERE signatures.sig_num =  " +  str(sig_num)
+    query = "SELECT signatures.sig_num FROM signatures WHERE signatures.sig_num =  " + signature_dict['sig_num']
     c.execute(query)
     row = c.fetchone()
     if (row == None):
-        print str(sig_num) + " not found"
+        print "DB: " + signature_dict['sig_num'] + " not found"
         #Add signature to the DB
-        if (city != ""):
-            c.execute("INSERT INTO signatures VALUES (null,?, ?, ?, ?, ?, ?, ?)", (wh_url_id2, str(sig_num), first_name, last_name, sig_date, city, state)) 
-        else:
-            c.execute("INSERT INTO signatures VALUES (null,?, ?, ?, ?, ?, null, null)", (wh_url_id2, str(sig_num), first_name, last_name, sig_date))
-    else:
-        print str(sig_num) + " found"
+        insert_values = "(null, :page, :sig_num, :first_name, :last_initial, :sig_date, :location_city, :location_state, :location_other, :time_added)"
+        c.execute("INSERT INTO signatures VALUES " + insert_values, signature_dict) 
+    else: 
+        print "DB: " + signature_dict['sig_num'] + " found"
 
 #commit changes to the database and close the cursor        
 conn.commit()
