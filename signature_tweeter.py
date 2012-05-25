@@ -5,24 +5,20 @@ import sys
 import requests
 import json
 from bs4 import BeautifulSoup
+from config import *
 
 #dictionary to convert month strings to ints
 months = {'January': 1, 'February': 2, 'March': 3, 'April':4, 'May':5, 'June':6, 'July':7, 'August':8, 'September':9, 'October':10, 'November':11, 'December':12}
 
 #open db connection
 import sqlite3
-conn = sqlite3.connect('signatures.db')
+conn = sqlite3.connect(database) # db defined in config.py
 c = conn.cursor()
 
 # Some useful values
 timestamp = strftime("%Y-%m-%d-%H:%M:%S")
 
-# Grab data from whitehouse.gov petition
-wh_url_base = "https://wwws.whitehouse.gov/petition-tool/signatures/more/"
-wh_url_id1 = "4fafe312709f037653000011"
-wh_url_num = 1
-wh_url_id2 = "4fbb32994bd504422b000039" # This one gets updated, don't ignore these
-
+# Create White House URL from components (defined in config.py)
 wh_url = wh_url_base + wh_url_id1  + "/" + str(wh_url_num) + "/" + wh_url_id2
 
 # call curl command (make http get request)
@@ -41,31 +37,39 @@ the_text = the_text.replace('/name',"").replace("      ","")
 '''
 
 # print soup
-for entry in soup.find_all("div", {"class" : "entry entry-reg "}):
+for entry in soup.find_all("div", {"class" : "entry-reg"}):
     the_name = entry.div.string
     # save the_name to the sqlite db
 
     # Debug:
-    print "\n" + str(the_name)
-    
-    first_name = the_name.split(' ')[0]
-    last_name = the_name.split(' ')[1]
+
+    clean_name = str(the_name).replace("  "," ").replace("   "," ")
+    first_name = clean_name.split(' ')[0]
+    last_name = clean_name.split(' ')[1]
+
+    print "\n" + clean_name
 
     # break up details into component pieces
     the_details = entry.find("div", {"class" : "details" }).get_text().replace("      ","").replace("    ","")
     the_details = the_details.split('\n')
     # months = ('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
     location = the_details[1].split(',')
-    if location[0] != "":
+    #Debug:
+    print location
+    if len(location) > 1:
         city = location[0]
         state = location[1].replace(" ","")
-
         # Debug
         print city + " " + state
     else:
         city = ""
         state = ""
         # save city and state to sqlite db
+
+    if len(location) == 1:
+        state = location[0]
+        print state
+        # save state (likely country)
     full_date = the_details[2].split()
     month = str(months[full_date[0]])
     day = full_date[1].replace(",","")
