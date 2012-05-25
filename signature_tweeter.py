@@ -38,10 +38,36 @@ the_text = the_text.replace('/name',"").replace("      ","")
 
 # print soup
 for entry in soup.find_all("div", {"class" : "entry entry-reg "}):
-   the_name = entry.div.string
-   print str(the_name) + '\n'
-   the_details = entry.find("div", {"class" : "details" }).get_text().replace("      ","")
-   print str(the_details) + '\n'
+    the_name = entry.div.string
+    # save the_name to the sqlite db
+
+    # Debug:
+    print "\n" + str(the_name)
+
+    # break up details into component pieces
+    the_details = entry.find("div", {"class" : "details" }).get_text().replace("      ","").replace("    ","")
+    the_details = the_details.split('\n')
+    # months = ('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
+    location = the_details[1].split(',')
+    if location[0] != "":
+        city = location[0]
+        state = location[1].replace(" ","")
+
+        # Debug
+        print city + " " + state
+        # save city and state to sqlite db
+    full_date = the_details[2].split()
+    month = full_date[0]
+    day = full_date[1].replace(",","")
+    year = full_date[2]
+
+    # Debug:
+    print month + " " + day + " " + year
+
+    full_sig = the_details[3].split()
+    sig_num = int(full_sig[2].replace(',',''))
+    # Debug:
+    print sig_num
 
 '''
 <div class="name">Robert G</div><!--/name-->
