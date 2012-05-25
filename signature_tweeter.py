@@ -102,42 +102,42 @@ c.close()
 '''
 <div class="name">Robert G</div><!--/name-->
 <div class="details">
-      Los Angeles, CA<br/>
-      May 23, 2012<br/>
-      Signature # 13,711    </div>
+Los Angeles, CA<br/>
+May 23, 2012<br/>
+Signature # 13,711    </div>
 </div>, <div class="entry entry-reg ">
 <div class="name">Trystan G</div><!--/name-->
 <div class="details">
 <br/>
-      May 23, 2012<br/>
-      Signature # 13,710    </div>
+May 23, 2012<br/>
+Signature # 13,710    </div>
 </div>, <div class="entry entry-reg ">
 <div class="name">Vinay S</div><!--/name-->
 <div class="details">
-      Carmel, IN<br/>
-      May 23, 2012<br/>
-      Signature # 13,709    </div>
+Carmel, IN<br/>
+May 23, 2012<br/>
+Signature # 13,709    </div>
 </div>
 '''
 
 # Store data in signatures.db
 
-    # first, clean payload
+# first, clean payload
 #for sig in payload:
-    # Need regex for patterns:
-    # "\n \n \n \n" to separate signatures
-    # " <\/div>\n \n <\/div>\n \n" to be removed
-    # "<\/div>\n"
-    # This might be the regex of bad stuff: (\\n|<\\/div>| <\\/div>|\\n | \\n)
+# Need regex for patterns:
+# "\n \n \n \n" to separate signatures
+# " <\/div>\n \n <\/div>\n \n" to be removed
+# "<\/div>\n"
+# This might be the regex of bad stuff: (\\n|<\\/div>| <\\/div>|\\n | \\n)
 
 # "      " is the space separation
 
 
-    # Use HTML library to grab cotents of identified div elements
-    # Oddly, these elements have double-quotes escaped... could
-    # run a python funct to clean that too, may not need to...
+# Use HTML library to grab cotents of identified div elements
+# Oddly, these elements have double-quotes escaped... could
+# run a python funct to clean that too, may not need to...
 
-    # Check if we have this entry in the DB. If not, add it.
+# Check if we have this entry in the DB. If not, add it.
 
 # Output into a reasonable format, e.g. RSS, JSON, etc.
 
