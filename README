@@ -1,6 +1,8 @@
 Just a first trial.
 
-To run, initialize the database with dbstart.py
+To run, fill in details in config.py.bp and rename to config.py
+
+initialize the database with dbstart.py
 
 Then run signature_tweeter.py to see it in action
 
