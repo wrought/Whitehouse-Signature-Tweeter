@@ -6,14 +6,17 @@ Just a first trial.
 
 2.	fill in details in config.py.bp and rename to config.py
 
-3.	initialize the database with dbstart.py
+3.	initialize the database
+
+		   $dbstart.py
 
 4.	Then run signature_tweeter.py to see it in action
 
+	     $signature_tweeter.py
+
 5.	Check out the resulting database by:
       
-		$sqlite3
-      		>>SELECT * FROM signatures;
+		$sqlite3 signatures.db
 
 Pretty nifty!
 
