@@ -8,11 +8,11 @@ Just a first trial.
 
 3.	initialize the database
 
-	    $dbstart.py
+	    $ ./dbstart.py
 
 4.	Then run signature_tweeter.py to see it in action
 
-	    $signature_tweeter.py
+	    $ ./signature_tweeter.py
 
 5.	Check out the resulting database by:
       
