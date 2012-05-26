@@ -16,7 +16,7 @@ Just a first trial.
 
 5.	Check out the resulting database by:
       
-	    $sqlite3 signatures.db
+	    $ sqlite3 signatures.db
 
 Pretty nifty!
 
