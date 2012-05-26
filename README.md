@@ -2,13 +2,15 @@ Just a first trial.
 
 ##Instructions##
 
-fill in details in config.py.bp and rename to config.py
+1.	Go to dev.twitter.com to make an app.  Be sure to generate your oauth token _after_ you change your app's permissions to read & write
 
-initialize the database with dbstart.py
+2.	fill in details in config.py.bp and rename to config.py
 
-Then run signature_tweeter.py to see it in action
+3.	initialize the database with dbstart.py
 
-Check out the resulting database by:
+4.	Then run signature_tweeter.py to see it in action
+
+5.	Check out the resulting database by:
       
       $sqlite3
       >>SELECT * FROM signatures;
