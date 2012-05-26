@@ -2,7 +2,7 @@ Just a first trial.
 
 ##Instructions##
 
-1.	Go to dev.twitter.com to make an app.  Be sure to generate your oauth token _after_ you change your app's permissions to read & write
+1.	Go to https://dev.twitter.com to make an app.  Be sure to generate your oauth token _after_ you change your app's permissions to read & write
 
 2.	fill in details in config.py.bp and rename to config.py
 
@@ -12,8 +12,8 @@ Just a first trial.
 
 5.	Check out the resulting database by:
       
-      $sqlite3
-      >>SELECT * FROM signatures;
+		$sqlite3
+      		>>SELECT * FROM signatures;
 
 Pretty nifty!
 
