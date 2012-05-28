@@ -15,58 +15,6 @@ c = conn.cursor()
 # Some useful values
 timestamp = strftime("%Y-%m-%d-%H:%M:%S")
 
-# Create White House URL from components (defined in config.py)
-wh_url = wh_url_base + wh_url_id1  + "/" + str(wh_url_num) + "/" + wh_url_id2
-
-# call curl command (make http get request)
-r = requests.get(wh_url)
-response = r.content
-status_code = r.status_code
-
-# Break out JSON payload (all values)
-response = json.loads(response)["markup"]
-
-soup = BeautifulSoup(response)
-
-'''
-the_text = soup.get_text()
-the_text = the_text.replace('/name',"").replace("      ","")
-'''
-
-# print soup
-for entry in soup.find_all("div", {"class" : "entry-reg"}):
-    signature_dict = { "page":None, 
-                       "sig_num":None,
-                       "first_name":None,
-                       "last_initial":None,
-                       "sig_date":None,
-                       "location_city":None,
-                       "location_state":None,
-                       "location_other":None,
-                       "time_added": None}
-    #first and last name
-    the_name = entry.div.string
-    
-    clean_name = str(the_name).replace("  "," ").replace("   "," ")
-    signature_dict['first_name'] = clean_name.split(' ')[0]
-    signature_dict['last_initial'] = clean_name.split(' ')[1]
-    print "\n" + clean_name
-
-    # break up details into component pieces
-    the_details = entry.find("div", {"class" : "details" }).get_text().replace("      ","").replace("    ","")
-    the_details = the_details.split('\n')
-    # months = ('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
-    location = the_details[1].split(',')
-    #location
-    if len(location) > 1:
-        signature_dict['location_city'] = location[0]
-        signature_dict['location_state'] = location[1].replace(" ","")
-        # Debug
-        print signature_dict['location_city'] + " " + signature_dict['location_state']
-    elif len(location) == 1:
-        signature_dict['other_location'] = location[0]
-        print signature_dict['other_location']
-
 page_num = wh_url_num
 previous_change_made = True
 
