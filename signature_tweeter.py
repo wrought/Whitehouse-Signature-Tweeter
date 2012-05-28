@@ -46,7 +46,6 @@ for entry in soup.find_all("div", {"class" : "entry-reg"}):
     # months = ('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
     location = the_details[1].split(',')
     #Debug:
-    print location
     if len(location) > 1:
         city = location[0]
         state = location[1].replace(" ","")
