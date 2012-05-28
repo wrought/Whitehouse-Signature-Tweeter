@@ -1,2 +1,3 @@
 signatures.db
 config.py
+*.pyc
