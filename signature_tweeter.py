@@ -6,6 +6,7 @@ import requests
 import json
 from bs4 import BeautifulSoup
 from config import *
+import os
 
 #open db connection
 import sqlite3
@@ -15,6 +16,8 @@ c = conn.cursor()
 # Start taking Logs
 timestamp = strftime("%Y-%m-%d-%H:%M:%S")
 log_name = "log-" + timestamp + ".log"
+if not os.path.exists("log"):
+    os.makedirs("log")
 log = open("log/" + log_name, 'w')
 
 page_num = wh_url_num
