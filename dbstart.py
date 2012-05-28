@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from config import *
-import os.path
+import sys 
 
 import sqlite3
 conn = sqlite3.connect(database)
@@ -20,7 +20,7 @@ location_state the signatory's state
 location_other holds nonstandard locations when only thing available
 time_added GMT timestamp for when the entry is recorded
 """
-if not os.path.exists(database):
+try:
     c.execute('''
 CREATE TABLE signatures
 (sig_id INTEGER PRIMARY KEY ASC
@@ -33,5 +33,8 @@ CREATE TABLE signatures
 ,location_state TEXT
 ,location_other TEXT
 ,time_added DATETIME)''')
-else:
-    print "Hmm... " + database + " already exists. Check that out and run this script again!"
+
+except sqlite3.OperationalError:
+    print "\n Error: You probably already have a \"" + database + "\" database...\n"
+    print sys.exc_info()[1]
+
