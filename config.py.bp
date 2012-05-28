@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
-#fill me in! and take off the .bp
+# fill me in! and take off the .bp
 
 database = 'signatures.db'
 
 wh_url_base = 'https://wwws.whitehouse.gov/petition-tool/signatures/more/'
-wh_url_id1 = '4fafe312709f037653000011'
+wh_url_id1 = '4fafe312709f037653000011' # CHANGE THIS
 wh_url_num = 1
-wh_url_id2 = '4fbbf03b2ee8d0a55900005f'
+wh_url_id2 = '4fbbf03b2ee8d0a55900005f' # CHANGE THIS
 
 #twitter junk
 # The consumer keys can be found on your application's Details
@@ -21,6 +21,7 @@ consumer_secret = ''
 access_token = ''
 access_token_secret = ''
 
-
-##perform a complete sweep? Will stop after full page of existing entries if False
+# SPECIAL FEATURE
+# Perform a complete sweep?
+# Will stop after full page of existing entries if False
 complete_flag = False
