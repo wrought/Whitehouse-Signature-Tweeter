@@ -30,6 +30,18 @@ LEFT JOIN signatures as s
 ON s.sig_num = r.sig_num
 WHERE s.sig_num IS NULL''')
 
+print "MISSING SIGNATURE NUMBERS:"
+row = c.fetchone()
+while row:
+    print row[0]
+    row = c.fetchone()
+
+c.execute('''
+SELECT * FROM signatures AS s
+GROUP BY s.sig_num
+HAVING COUNT(*) > 1''')
+
+print "DUPLICATE SIGNATURE NUMBERS:"
 row = c.fetchone()
 while row:
     print row[0]
