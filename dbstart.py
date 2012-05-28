@@ -1,7 +1,11 @@
-import sqlite3
-conn = sqlite3.connect('signatures.db')
-c = conn.cursor()
+#!/usr/bin/python
 
+from config import *
+import sys 
+
+import sqlite3
+conn = sqlite3.connect(database)
+c = conn.cursor()
 
 """
 initialize sqlite table
@@ -16,7 +20,8 @@ location_state the signatory's state
 location_other holds nonstandard locations when only thing available
 time_added GMT timestamp for when the entry is recorded
 """
-c.execute('''
+try:
+    c.execute('''
 CREATE TABLE signatures
 (sig_id INTEGER PRIMARY KEY ASC
 ,page TEXT
@@ -28,3 +33,8 @@ CREATE TABLE signatures
 ,location_state TEXT
 ,location_other TEXT
 ,time_added DATETIME)''')
+
+except sqlite3.OperationalError:
+    print "\n Error: You probably already have a \"" + database + "\" database...\n"
+    print sys.exc_info()[1]
+

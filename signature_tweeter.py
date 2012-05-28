@@ -6,14 +6,19 @@ import requests
 import json
 from bs4 import BeautifulSoup
 from config import *
+import os
 
 #open db connection
 import sqlite3
 conn = sqlite3.connect(database) # db defined in config.py
 c = conn.cursor()
 
-# Some useful values
+# Start taking Logs
 timestamp = strftime("%Y-%m-%d-%H:%M:%S")
+log_name = "log-" + timestamp + ".log"
+if not os.path.exists("log"):
+    os.makedirs("log")
+log = open("log/" + log_name, 'w')
 
 page_num = wh_url_num
 previous_change_made = True
@@ -22,6 +27,7 @@ while wh_url_id2 != '' and previous_change_made:
     # Create White House URL from components (defined in config.py)
     wh_url = wh_url_base + wh_url_id1  + "/" + str(page_num) + "/" + wh_url_id2
     print "nextURL: " + str(page_num) + "/" + wh_url_id2
+    log.write("nextURL: " + str(page_num) + "/" + wh_url_id2 + "\n")
     # call curl command (make http get request)
     r = requests.get(wh_url)
     response = r.content
@@ -32,12 +38,8 @@ while wh_url_id2 != '' and previous_change_made:
 
     soup = BeautifulSoup(response)
 
-    '''
-    the_text = soup.get_text()
-    the_text = the_text.replace('/name',"").replace("      ","")
-    '''
+    previous_change_made = False # @TODO
 
-    previous_change_made = False
     #print soup
     for entry in soup.find_all("div", {"class" : "entry-reg"}):
         signature_dict = { "page":None, 
@@ -54,9 +56,20 @@ while wh_url_id2 != '' and previous_change_made:
         #first and last name
         the_name = entry.div.string
         clean_name = the_name.replace("  "," ").replace("   "," ")
-        signature_dict['first_name'] = clean_name.split(' ')[0]
-        signature_dict['last_initial'] = clean_name.split(' ')[1]
+        if not "@" in clean_name:
+            signature_dict['first_name'] = clean_name.split(' ')[0]
+	else:
+            signature_dict['first_name'] = clean_name.split('@')[0]
+        name_length = len(clean_name)
+        if name_length > 1:
+            clean_name_split = clean_name.split(' ')
+            clean_name_split.remove(clean_name_split[0])
+            signature_dict['last_initial'] = " ".join(clean_name_split)
+        else:
+            print "No last initials provided"
+            log.write("No last initials provided\n")
         print "\n" + clean_name
+        log.write("\n" + clean_name.encode('utf-8') + "\n")
 
         # break up details into component pieces
         the_details = entry.find("div", {"class" : "details" }).get_text().replace("      ","").replace("    ","")
@@ -70,11 +83,14 @@ while wh_url_id2 != '' and previous_change_made:
             signature_dict['location_state'] = location[1].replace(" ","")
             # Debug
             print signature_dict['location_city'] + " " + signature_dict['location_state']
+            log.write(signature_dict['location_city'].encode('utf-8') + " " + signature_dict['location_state'].encode('utf-8') + "\n")
         elif len(location) == 1:
             signature_dict['other_location'] = location[0]
             print signature_dict['other_location']
+            log.write(signature_dict['other_location'].encode('utf-8') + "\n")
         else:
             print "Location parsing error with: " + location
+            log.write("Location parsing error with: " + location.encode('utf-8') + "\n")
         full_date = the_details[2].split()
         month = full_date[0]
         day = full_date[1].replace(",","")
@@ -85,11 +101,13 @@ while wh_url_id2 != '' and previous_change_made:
 
         # Debug:
         print month + " " + day + " " + year
+        log.write(month + " " + day + " " + year + "\n")
 
         full_sig = the_details[3].split()
         signature_dict['sig_num'] = full_sig[2].replace(',','')
         # Debug:
         print signature_dict['sig_num']
+        log.write(signature_dict['sig_num'] + "\n")
 
         #database insertion
         #verify that signature doesn't exist already
@@ -98,6 +116,7 @@ while wh_url_id2 != '' and previous_change_made:
         row = c.fetchone()
         if (row == None):
             print "DB: " + signature_dict['sig_num'] + " not found"
+            log.write("DB: " + signature_dict['sig_num'] + " not found\n")
             #Add signature to the DB
             signature_dict['time_added'] = strftime("%Y-%m-%d %H:%M:%S", gmtime())
             insert_values = "(null, :page, :sig_num, :first_name, :last_initial, :sig_date, :location_city, :location_state, :location_other, :time_added)"
@@ -105,6 +124,7 @@ while wh_url_id2 != '' and previous_change_made:
             previous_change_made = True
         else: 
             print "DB: " + signature_dict['sig_num'] + " found"
+            log.write("DB: " + signature_dict['sig_num'] + " found\n")
 
     anchors = soup.find_all("a", {"class" : "load-next"})
 
@@ -114,14 +134,20 @@ while wh_url_id2 != '' and previous_change_made:
         page_num += 1
     else:
         print "nextURL: not found"
+        log.write("nextURL: not found\n")
         wh_url_id2 = ''
 
     if complete_flag:
         previous_change_made = True 
  
-#commit changes to the database and close the cursor        
+# commit changes to the database, close the cursor, and close log
 conn.commit()
 c.close()
+log.close()
+
+######################## EXTRA INFO #########################
+
+# Sample of format of signatures from http request response
 
 '''
 <div class="name">Robert G</div><!--/name-->
@@ -143,27 +169,3 @@ May 23, 2012<br/>
 Signature # 13,709    </div>
 </div>
 '''
-
-# Store data in signatures.db
-
-# first, clean payload
-#for sig in payload:
-# Need regex for patterns:
-# "\n \n \n \n" to separate signatures
-# " <\/div>\n \n <\/div>\n \n" to be removed
-# "<\/div>\n"
-# This might be the regex of bad stuff: (\\n|<\\/div>| <\\/div>|\\n | \\n)
-
-# "      " is the space separation
-
-
-# Use HTML library to grab cotents of identified div elements
-# Oddly, these elements have double-quotes escaped... could
-# run a python funct to clean that too, may not need to...
-
-# Check if we have this entry in the DB. If not, add it.
-
-# Output into a reasonable format, e.g. RSS, JSON, etc.
-
-# Send out a tweet (if it's new!!!!!)
-
