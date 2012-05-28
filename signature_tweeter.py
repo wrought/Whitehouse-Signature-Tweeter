@@ -7,9 +7,6 @@ import json
 from bs4 import BeautifulSoup
 from config import *
 
-#things that should be in config
-complete_flag = False #do a complete remote sweep?
-
 #open db connection
 import sqlite3
 conn = sqlite3.connect(database) # db defined in config.py
