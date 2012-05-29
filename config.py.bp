@@ -14,6 +14,8 @@ wh_url_id2 = '4fbbf03b2ee8d0a55900005f' # CHANGE THIS
 # page located at https://dev.twitter.com/apps (under "OAuth settings")
 consumer_key = ''
 consumer_secret = ''
+msg_preamble = ""
+msg_postamble = ""
 
 # The access tokens can be found on your applications's Details
 # page located at https://dev.twitter.com/apps (located 
