@@ -2,7 +2,7 @@
 
 import tweepy
 import threading
-import Queue
+from collections import deque
 
 class Tweeter(threading.Thread):
     
@@ -20,7 +20,7 @@ class Tweeter(threading.Thread):
     auth = ""
     api = ""
     
-    def __init__(self, c_key, c_sec, a_tok, a_tok_s, q)
+    def __init__(self, c_key, c_sec, a_tok, a_tok_s, d)
         threading.Thread.__init__(self)
         self.consumer_key = c_key
         self.consumer_secret = c_sec
@@ -35,21 +35,29 @@ class Tweeter(threading.Thread):
         #test to see if logged in
         print self.api.me().name
 
-        self.q = q
-        self.exitFlag = False
+        self.d = d
+        self.exitflag = False
 
-        self.msg_preamble = "#oamonday just signed by "
-        self.msg_postamble = " bit.ly/J7tSiV"
+        self.msg_preamble = "wh.gov petition just signed by "
+        self.msg_postamble = ""
     
-    #TODO
+    # @TODO
     def run(self):
-        while not exitFlag:
+        while not exitflag:
             people = ""
             rightLength = False
-            while not rightLength:
-                currentLength = len(msg_preamble + people + msg_postamble)
-                next_person = self.q[-1]
-                nextLength = len(msg_preamble + add_to_msg(people, next_person) + ms_postamble)
+            while not rightlength:
+                currentlength = len(msg_preamble + people + msg_postamble)
+                next_person = list(self.d)[-1]
+
+            # @TODO add in lock here later, as well as one in the parser thread...
+
+                nextlength = len(msg_preamble + add_to_msg(people, next_person) + msg_postamble)
+                if nextlength > 140:
+                    rightlength = True
+                else:
+                    people = self.add_to_msg(people, self.d.pop())
+            self.tweet(msg_preamble + people + msg_postamble)
                 
     
     def add_to_msg(self, items, next_item):
@@ -59,4 +67,7 @@ class Tweeter(threading.Thread):
             return items + ', ' + next_item
 
     def tweet(self, message):
-        self.api.update_status(message)
+        # Debugging
+        print "Your tweet: " + message
+        # Alternative
+        # self.api.update_status(message)
