@@ -14,15 +14,19 @@ from config import *
 
 class parser(threading.Thread):
     
-    def __init__(self, name, delay, wh_url_base, wh_url_id1, starting_page, q, db):
+    def __init__(self, name, delay, wh_url_base, wh_url_id1, starting_page, q, exit_event, db):
         threading.Thread.__init__(self)
         self.delay = delay
         self.wh_url_base = wh_url_base
         self.wh_url_id1 = wh_url_id1
         self.starting_page = starting_page
         self.q = q
+        self.exit_event = exit_event
         self.exitFlag = False
         self.db = db
+        
+        self.conn = sqlite3.connect(self.db, check_same_thread = False)
+        self.c = self.conn.cursor()
     
     def create_db_connection(self):
         self.conn = sqlite3.connect(self.db)
@@ -44,7 +48,10 @@ class parser(threading.Thread):
                         previous_changes_made = True
                 page_num += 1
                 next_page = self.get_next_page(soup)
-            time.sleep(self.delay)
+            if self.exit_event.wait(delay):
+                self.exit()
+        self.c.close()
+        print self.name + ": Closed"
     
     def exit(self):
         self.exitFlag = True
@@ -67,27 +74,21 @@ class parser(threading.Thread):
     def write_db(self, signature_dict):
         #database insertion
         #verify that signature doesn't exist already
-        conn = sqlite3.connect(self.db)
-        c = conn.cursor()
-        
         query = "SELECT signatures.sig_num FROM signatures WHERE signatures.sig_num =  " + signature_dict['sig_num']
-        c.execute(query)
-        row = c.fetchone()
+        self.c.execute(query)
+        row = self.c.fetchone()
         if (row == None):
             print "DB: " + signature_dict['sig_num'] + " not found"
             #log.write("DB: " + signature_dict['sig_num'] + " not found\n")
             #Add signature to the DB
             signature_dict['time_added'] = strftime("%Y-%m-%d %H:%M:%S", gmtime())
             insert_values = "(null, :page, :sig_num, :first_name, :last_initial, :sig_date, :location_city, :location_state, :location_other, :time_added)"
-            c.execute("INSERT INTO signatures VALUES " + insert_values, signature_dict)
-            conn.commit()
-            c.close()
+            self.c.execute("INSERT INTO signatures VALUES " + insert_values, signature_dict)
+            self.conn.commit()
             return True
         else: 
             print "DB: " + signature_dict['sig_num'] + " found"
             #log.write("DB: " + signature_dict['sig_num'] + " found\n")
-            conn.commit()
-            c.close()
             return False
 
     #takes a signature entry, gives a signature_dict
