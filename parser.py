@@ -45,10 +45,11 @@ class parser(threading.Thread):
                     new = self.write_db(signature_dict)
                     if new:
                         #Write to tweeter Queue here
+                        self.q.put(signature_dict['first_name'] + ' ' + signature_dict['last_initial'])
                         previous_changes_made = True
                 page_num += 1
                 next_page = self.get_next_page(soup)
-            if self.exit_event.wait(delay):
+            if self.exit_event.wait(self.delay):
                 self.exit()
         self.c.close()
         print self.name + ": Closed"
