@@ -23,9 +23,15 @@ if not os.path.exists("log"):
 log = open("log/" + log_name, 'w')
 
 twitter_Queue = Queue.Queue(100)
+exit_event = threading.Event()
 
-parser_thread = parser("parser", 20, wh_url_base, wh_url_id1, wh_url_id2, twitter_Queue, database)
+
+parser_thread = parser("parser", 20, wh_url_base, wh_url_id1, wh_url_id2, 
+                       twitter_Queue, exit_event, database)
 parser_thread.start()
+
+raw_input("Press enter to end . . .")
+exit_event.set()
 
 log.close()
 
