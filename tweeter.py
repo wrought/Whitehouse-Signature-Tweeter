@@ -2,7 +2,7 @@
 
 import tweepy
 import threading
-from collections import deque
+import Queue
 
 class Tweeter(threading.Thread):
     
@@ -20,7 +20,7 @@ class Tweeter(threading.Thread):
     auth = ""
     api = ""
     
-    def __init__(self, c_key, c_sec, a_tok, a_tok_s, d)
+    def __init__(self, c_key, c_sec, a_tok, a_tok_s, msg_preamble, msg_postamble, q, exit_event, delay):
         threading.Thread.__init__(self)
         self.consumer_key = c_key
         self.consumer_secret = c_sec
@@ -35,37 +35,65 @@ class Tweeter(threading.Thread):
         #test to see if logged in
         print self.api.me().name
 
-        self.d = d
+        self.q = q
+        self.exit_event = exit_event
         self.exitflag = False
 
-        self.msg_preamble = "wh.gov petition just signed by "
-        self.msg_postamble = ""
+        self.delay = delay
+
+        self.msg_preamble = msg_preamble
+        self.msg_postamble = msg_postamble
     
     # @TODO
     def run(self):
-        while not exitflag:
+        old_next_person = None
+        while not self.exitflag:
             people = ""
-            rightLength = False
-            while not rightlength:
-                currentlength = len(msg_preamble + people + msg_postamble)
-                next_person = list(self.d)[-1]
-
-            # @TODO add in lock here later, as well as one in the parser thread...
-
-                nextlength = len(msg_preamble + add_to_msg(people, next_person) + msg_postamble)
-                if nextlength > 140:
-                    rightlength = True
+            rightlength = False
+            while not rightlength and not self.exit_event.wait(0):
+                next_person = None
+                if old_next_person == None:
+                    #print "DEBUG: tweeter: q.empty()=" + str(self.q.empty())
+                    if not self.q.empty():
+                        next_person = self.q.get()
+                    else:
+                        pass
+                        #print "DEBUG: tweeter: nothing in q"
                 else:
-                    people = self.add_to_msg(people, self.d.pop())
-            self.tweet(msg_preamble + people + msg_postamble)
+                    next_person = old_next_person
+                    old_next_person = None
                 
+                #throw out names that are too long
+                if (next_person == None) or (len(next_person) > 40):
+                    next_person = None
+                
+                if next_person != None:
+                    #print "DEBUG: tweeter: adding person: " + next_person
+                    currentlength = len(self.msg_preamble + people + self.msg_postamble)
+                    nextlength = len(self.msg_preamble + self.add_to_msg(people, next_person) + self.msg_postamble)
+                    if nextlength > 140:
+                        old_next_person = next_person
+                        rightlength = True
+                    else:
+                        people = self.add_to_msg(people, next_person)
+                else:
+                    if self.exit_event.wait(1):
+                        self.exit()
+                #print "DEBUG: tweeter: msg = " + self.msg_preamble + people + self.msg_postamble
+            if not self.exitflag:
+                self.tweet(self.msg_preamble + people + self.msg_postamble)
+            if self.exit_event.wait(self.delay):
+                self.exit()
+        print "Exiting: tweeter"
     
     def add_to_msg(self, items, next_item):
         if len(items) == 0:
             return next_item
         else:
             return items + ', ' + next_item
-
+    
+    def exit(self):
+        self.exitflag = True
     def tweet(self, message):
         # Debugging
         print "Your tweet: " + message
