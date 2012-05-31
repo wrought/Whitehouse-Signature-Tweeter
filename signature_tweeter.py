@@ -11,6 +11,14 @@ import Queue
 from parser import *
 from tweeter import *
 
+class mutable_int:
+    def __init__(self):
+        self.value = 0;
+    def set(self, value):
+        self.value = value
+    def get(self):
+        return self.value
+
 #open db connection
 #import sqlite3
 #conn = sqlite3.connect(database) # db defined in config.py
@@ -23,22 +31,28 @@ if not os.path.exists("log"):
     os.makedirs("log")
 log = open("log/" + log_name, 'w')
 
-twitter_Queue = Queue.Queue(100)
+twitter_Queue = Queue.Queue(10000)
 exit_event = threading.Event()
-
+signature_count = mutable_int()
 
 parser_thread = parser("parser", 20, wh_url_base, wh_url_id1, wh_url_id2, 
-                       twitter_Queue, exit_event, database)
+                       twitter_Queue, signature_count, exit_event, database)
 tweetbot = Tweeter(consumer_key, consumer_secret, access_token, access_token_secret, 
-                   msg_preamble, msg_postamble, twitter_Queue, exit_event, 10)
+                   msg_preamble, msg_postamble, twitter_Queue, signature_count, exit_event, 10)
 
 parser_thread.start()
 tweetbot.start()
 
 raw_input("Press enter to end . . .")
 exit_event.set()
+print "exiting . . ."
+
+parser_thread.join()
+tweetbot.join()
 
 log.close()
+
+print "Exiting: main thread"
 
 ######################## EXTRA INFO #########################
 
