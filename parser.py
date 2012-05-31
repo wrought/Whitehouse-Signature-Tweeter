@@ -14,12 +14,13 @@ from config import *
 
 class parser(threading.Thread):
     
-    def __init__(self, name, delay, wh_url_base, wh_url_id1, starting_page, q, exit_event, db):
+    def __init__(self, name, delay, wh_url_base, wh_url_id1, starting_page, q, signature_count, exit_event, db):
         threading.Thread.__init__(self)
         self.delay = delay
         self.wh_url_base = wh_url_base
         self.wh_url_id1 = wh_url_id1
         self.starting_page = starting_page
+        self.signature_count = signature_count
         self.q = q
         self.exit_event = exit_event
         self.exitFlag = False
@@ -37,22 +38,30 @@ class parser(threading.Thread):
             next_page = self.starting_page
             page_num = 1
             previous_changes_made = True
-            while next_page != '' and (previous_changes_made or complete_flag):
+            while next_page != '' and (previous_changes_made or complete_flag) and not self.exit_event.wait(0):
+                #print "THREAD: parser: requesting . . ."
                 soup = self.get_soup(page_num, next_page)
-                previous_changes_made = False
-                for entry in soup.find_all("div", {"class" : "entry-reg"}):
-                    signature_dict = self.parse_entry(entry, next_page)
-                    new = self.write_db(signature_dict)
-                    if new:
-                        #Write to tweeter Queue here
-                        self.q.put(signature_dict['first_name'] + ' ' + signature_dict['last_initial'])
-                        previous_changes_made = True
-                page_num += 1
-                next_page = self.get_next_page(soup)
+                if soup != -1:
+                    previous_changes_made = False
+                    #print "THREAD: parser: parsing . . ."
+                    for entry in soup.find_all("div", {"class" : "entry-reg"}):
+                        signature_dict = self.parse_entry(entry, next_page)
+                        #print "THREAD: parser: writing . . ."
+                        new = self.write_db(signature_dict)
+                        if new:
+                            #Write to tweeter Queue here
+                            #print "THREAD: parser: adding to queue . . ."
+                            self.q.put(signature_dict['first_name'] + ' ' + signature_dict['last_initial'])
+                            #print "THREAD: parser: updating signature_count . . ."
+                            if signature_dict['sig_num'] > self.signature_count.get():
+                                self.signature_count.set(signature_dict['sig_num'])
+                            previous_changes_made = True
+                    page_num += 1
+                    next_page = self.get_next_page(soup)
             if self.exit_event.wait(self.delay):
                 self.exit()
         self.c.close()
-        print self.name + ": Closed"
+        print "Exiting: parser"
     
     def exit(self):
         self.exitFlag = True
@@ -60,7 +69,11 @@ class parser(threading.Thread):
     #takes the page number and page, grabs json, returns soup
     def get_soup(self, page_num, page):
         wh_url = self.wh_url_base + self.wh_url_id1 + "/" + str(page_num) + "/" + page
-        r = requests.get(wh_url)
+        try:
+            r = requests.get(wh_url, timeout = 3)
+        except Timeout:
+            print "THREAD: parser: requests.get() timed out"
+            return -1
         response = r.content
         status_code = r.status_code
         
@@ -75,6 +88,7 @@ class parser(threading.Thread):
     def write_db(self, signature_dict):
         #database insertion
         #verify that signature doesn't exist already
+        #print "THREAD: parser: querying . . ."
         query = "SELECT signatures.sig_num FROM signatures WHERE signatures.sig_num =  " + signature_dict['sig_num']
         self.c.execute(query)
         row = self.c.fetchone()
@@ -84,7 +98,9 @@ class parser(threading.Thread):
             #Add signature to the DB
             signature_dict['time_added'] = strftime("%Y-%m-%d %H:%M:%S", gmtime())
             insert_values = "(null, :page, :sig_num, :first_name, :last_initial, :sig_date, :location_city, :location_state, :location_other, :time_added)"
+            #print "THREAD: parser: inserting . . ."
             self.c.execute("INSERT INTO signatures VALUES " + insert_values, signature_dict)
+            #print "THREAD: parser: commiting . . ."
             self.conn.commit()
             return True
         else: 
