@@ -20,7 +20,8 @@ class Tweeter(threading.Thread):
     auth = ""
     api = ""
     
-    def __init__(self, c_key, c_sec, a_tok, a_tok_s, msg_preamble, msg_postamble, q, exit_event, delay):
+    def __init__(self, c_key, c_sec, a_tok, a_tok_s, msg_preamble, msg_postamble, 
+                 q, signature_count, exit_event, delay):
         threading.Thread.__init__(self)
         self.consumer_key = c_key
         self.consumer_secret = c_sec
@@ -36,6 +37,7 @@ class Tweeter(threading.Thread):
         print self.api.me().name
 
         self.q = q
+        self.signature_count = signature_count
         self.exit_event = exit_event
         self.exitflag = False
 
@@ -69,8 +71,10 @@ class Tweeter(threading.Thread):
                 
                 if next_person != None:
                     #print "DEBUG: tweeter: adding person: " + next_person
-                    currentlength = len(self.msg_preamble + people + self.msg_postamble)
-                    nextlength = len(self.msg_preamble + self.add_to_msg(people, next_person) + self.msg_postamble)
+                    currentlength = len((self.msg_preamble % self.signature_count.get()) 
+                                        + people + self.msg_postamble)
+                    nextlength = len((self.msg_preamble % self.signature_count.get()) 
+                                     + self.add_to_msg(people, next_person) + self.msg_postamble)
                     if nextlength > 140:
                         old_next_person = next_person
                         rightlength = True
@@ -81,7 +85,8 @@ class Tweeter(threading.Thread):
                         self.exit()
                 #print "DEBUG: tweeter: msg = " + self.msg_preamble + people + self.msg_postamble
             if not self.exitflag:
-                self.tweet(self.msg_preamble + people + self.msg_postamble)
+                self.tweet((self.msg_preamble % self.signature_count.get()) 
+                           + people + self.msg_postamble)
             if self.exit_event.wait(self.delay):
                 self.exit()
         print "Exiting: tweeter"
