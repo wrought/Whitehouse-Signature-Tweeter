@@ -14,14 +14,16 @@ wh_url_id2 = '4fbbf03b2ee8d0a55900005f' # CHANGE THIS
 # page located at https://dev.twitter.com/apps (under "OAuth settings")
 consumer_key = ''
 consumer_secret = ''
-msg_preamble = ""
-msg_postamble = ""
 
 # The access tokens can be found on your applications's Details
 # page located at https://dev.twitter.com/apps (located 
 # under "Your access token")
 access_token = ''
 access_token_secret = ''
+
+# message properties
+msg_preamble = "#OAMonday petition at %s signatures. Thanks to "
+msg_postamble = "! wh.gov/6TH"
 
 # SPECIAL FEATURE
 # Perform a complete sweep?
