@@ -75,7 +75,7 @@ class Tweeter(threading.Thread):
                                         + people + self.msg_postamble)
                     nextlength = len((self.msg_preamble % self.signature_count.get()) 
                                      + self.add_to_msg(people, next_person) + self.msg_postamble)
-                    if nextlength > 140:
+                    if nextlength > 135:
                         old_next_person = next_person
                         rightlength = True
                     else:
@@ -101,6 +101,6 @@ class Tweeter(threading.Thread):
         self.exitflag = True
     def tweet(self, message):
         # Debugging
-        print "Your tweet: " + message
+        # print "Your tweet: " + message
         # Alternative
-        # self.api.update_status(message)
+        self.api.update_status(message)
