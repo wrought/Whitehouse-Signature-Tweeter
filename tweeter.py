@@ -75,7 +75,7 @@ class Tweeter(threading.Thread):
                                         + people + self.msg_postamble)
                     nextlength = len((self.msg_preamble % self.signature_count.get()) 
                                      + self.add_to_msg(people, next_person) + self.msg_postamble)
-                    if nextlength > 135:
+                    if nextlength > 120:
                         old_next_person = next_person
                         rightlength = True
                     else:
