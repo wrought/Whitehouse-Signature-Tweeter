@@ -85,7 +85,7 @@ class Tweeter(threading.Thread):
                     logger.debug("current msg length: %s" % currentlength)
                     nextlength = len((self.msg_preamble % self.signature_count.get()) 
                                      + self.add_to_msg(people, next_person) + self.msg_postamble)
-                    logger.debug("possible next msg length: %s" % currentlength)
+                    logger.debug("possible next msg length: %s" % nextlength)
                     if nextlength > 120:
                         logger.debug("msg was already the correct length. Getting ready to tweet . . .")
                         logger.debug("stowing %s" % old_next_person)
@@ -124,9 +124,9 @@ class Tweeter(threading.Thread):
             logger.error('tweet to long at %s characters.' % str(len(message)))
             return -1
         else:
-            # print "Your tweet: " + message
+            print "Your tweet: " + message
             # Alternative
-            self.api.update_status(message)
+            # self.api.update_status(message)
         logger.debug('tweet complete')
         return 0
         
