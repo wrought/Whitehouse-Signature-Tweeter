@@ -126,7 +126,10 @@ class Tweeter(threading.Thread):
         else:
             print "Your tweet: " + message
             # Alternative
-            # self.api.update_status(message)
+            try:
+                self.api.update_status(message)
+            except:
+                logging.error("something broke with the update_status_call")
         logger.debug('tweet complete')
         return 0
         
