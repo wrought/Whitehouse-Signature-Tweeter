@@ -10,7 +10,10 @@ import os
 import Queue
 import threading
 import sqlite3
+import logging
 from config import *
+
+logger = logging.getLogger('parser')
 
 class parser(threading.Thread):
     
@@ -28,10 +31,12 @@ class parser(threading.Thread):
         
         self.conn = sqlite3.connect(self.db, check_same_thread = False)
         self.c = self.conn.cursor()
+        logger.debug("constructed")
     
     def create_db_connection(self):
         self.conn = sqlite3.connect(self.db)
         self.c = self.conn.cursor()
+        logger.debug("sqlite connection created")
 
     def run(self):
         while not self.exitFlag:
@@ -50,36 +55,43 @@ class parser(threading.Thread):
                         new = self.write_db(signature_dict)
                         if new:
                             #Write to tweeter Queue here
-                            #print "THREAD: parser: adding to queue . . ."
+                            logger.debug("adding %s %s to the queue" % (signature_dict['first_name'], signature_dict['last_initial']))
                             self.q.put(signature_dict['first_name'] + ' ' + signature_dict['last_initial'])
-                            #print "THREAD: parser: updating signature_count . . ."
+                            logger.debug("updating signature_count . . .")
                             if signature_dict['sig_num'] > self.signature_count.get():
+                                logger.info("new max signature count: %s" % signature_dict['sig_num'])
                                 self.signature_count.set(signature_dict['sig_num'])
                             previous_changes_made = True
                     page_num += 1
                     next_page = self.get_next_page(soup)
             if self.exit_event.wait(self.delay):
                 self.exit()
+        logger.debug("closing sqlite connection . . .")
         self.c.close()
+        logger.info('exiting thread')
         print "Exiting: parser"
     
     def exit(self):
+        logger.debug("initializing exit procedure . . .")
         self.exitFlag = True
     
     #takes the page number and page, grabs json, returns soup
     def get_soup(self, page_num, page):
         wh_url = self.wh_url_base + self.wh_url_id1 + "/" + str(page_num) + "/" + page
+        logger.debug("requesting %s" % wh_url)
         try:
             r = requests.get(wh_url, timeout = 3)
         except Timeout:
             print "THREAD: parser: requests.get() timed out"
+            logger.warning("request to %s timed out" % wh_url)
             return -1
+        logger.debug("get() successful")
         response = r.content
         status_code = r.status_code
         
         payload = json.loads(response)["markup"]        
         soup = BeautifulSoup(payload)
-
+        logger.debug("soup created successfully")
         return soup
 
     #takes a signature_dict
@@ -94,18 +106,20 @@ class parser(threading.Thread):
         row = self.c.fetchone()
         if (row == None):
             print "DB: " + signature_dict['sig_num'] + " not found"
-            #log.write("DB: " + signature_dict['sig_num'] + " not found\n")
+            logger.info("DB: " + signature_dict['sig_num'] + " not found")
             #Add signature to the DB
             signature_dict['time_added'] = strftime("%Y-%m-%d %H:%M:%S", gmtime())
             insert_values = "(null, :page, :sig_num, :first_name, :last_initial, :sig_date, :location_city, :location_state, :location_other, :time_added)"
-            #print "THREAD: parser: inserting . . ."
+            logger.info("inserting %s: %s %s" % (signature_dict['sig_num'], 
+                                                  signature_dict['first_name'], 
+                                                  signature_dict['last_initial']))
             self.c.execute("INSERT INTO signatures VALUES " + insert_values, signature_dict)
-            #print "THREAD: parser: commiting . . ."
+            logging.debug("inserted. commiting . . .")
             self.conn.commit()
             return True
         else: 
             print "DB: " + signature_dict['sig_num'] + " found"
-            #log.write("DB: " + signature_dict['sig_num'] + " found\n")
+            logger.info("DB: " + signature_dict['sig_num'] + " found")
             return False
 
     #takes a signature entry, gives a signature_dict
@@ -119,7 +133,7 @@ class parser(threading.Thread):
                        "location_state":None,
                        "location_other":None,
                        "time_added": None}
-        
+        logger.debug("parsing signature entry")
         #page
         signature_dict['page'] = page
 
@@ -137,9 +151,9 @@ class parser(threading.Thread):
             signature_dict['last_initial'] = " ".join(clean_name_split)
         else:
             print "No last initials provided"
-            #log.write("No last initials provided\n")
+            logger.debug("No last initials provided\n")
         print "\n" + clean_name
-        #log.write("\n" + clean_name.encode('utf-8') + "\n")
+        logger.debug("name: " + clean_name.encode('utf-8'))
 
         # break up details into component pieces
         the_details = entry.find("div", {"class" : "details" }).get_text().replace("      ","").replace("    ","")
@@ -152,14 +166,14 @@ class parser(threading.Thread):
             signature_dict['location_state'] = location[1].replace(" ","")
             # Debug
             print signature_dict['location_city'] + " " + signature_dict['location_state']
-            #log.write(signature_dict['location_city'].encode('utf-8') + " " + signature_dict['location_state'].encode('utf-8') + "\n")
+            logger.debug("location: " + signature_dict['location_city'].encode('utf-8') + " " + signature_dict['location_state'].encode('utf-8'))
         elif len(location) == 1:
             signature_dict['other_location'] = location[0]
             print signature_dict['other_location']
-            #log.write(signature_dict['other_location'].encode('utf-8') + "\n")
+            logger.debug("other location: " + signature_dict['other_location'].encode('utf-8'))
         else:
             print "Location parsing error with: " + location
-            #log.write("Location parsing error with: " + location.encode('utf-8') + "\n")
+            logger.warning("Location parsing error with: " + location.encode('utf-8') + "\n")
         full_date = the_details[2].split()
         month = full_date[0]
         day = full_date[1].replace(",","")
@@ -170,28 +184,32 @@ class parser(threading.Thread):
 
         # Debug:
         print month + " " + day + " " + year
-        #log.write(month + " " + day + " " + year + "\n")
+        logger.debug("date: " + month + " " + day + " " + year)
 
         full_sig = the_details[3].split()
         signature_dict['sig_num'] = full_sig[2].replace(',','')
         # Debug:
         print signature_dict['sig_num']
-        #log.write(signature_dict['sig_num'] + "\n")
+        logger.debug("sig_num: " + signature_dict['sig_num'])
 
+        logger.debug("parsing complete")
         return signature_dict
     
     #takes soup, returns next page to look at, null string if none
     def get_next_page(self, soup):
+        logger.debug("finding next page")
         anchors = soup.find_all("a", {"class" : "load-next"})
         
         if len(anchors) == 1:
             anchor = anchors[0]
             wh_url_id2 = anchor.get('href').split('last=')[1]
+            logger.debug("next page: %s" % wh_url_id2)
         else:
             print "nextURL: not found"
-            #log.write("nextURL: not found\n")
+            logger.warning("nextURL: not found")
             wh_url_id2 = ''
         
+        logger.debug("finding next page complete")
         return wh_url_id2
 
 

@@ -8,6 +8,7 @@ import sys
 from config import *
 import os
 import Queue
+import logging
 from parser import *
 from tweeter import *
 
@@ -24,12 +25,8 @@ class mutable_int:
 #conn = sqlite3.connect(database) # db defined in config.py
 #c = conn.cursor()
 
-# Start taking Logs
-timestamp = strftime("%Y-%m-%d-%H:%M:%S")
-log_name = "log-" + timestamp + ".log"
-if not os.path.exists("log"):
-    os.makedirs("log")
-log = open("log/" + log_name, 'w')
+#start logger
+logger = logging.getLogger('main')
 
 twitter_Queue = Queue.Queue(10000)
 exit_event = threading.Event()
@@ -50,8 +47,7 @@ print "exiting . . ."
 parser_thread.join()
 tweetbot.join()
 
-log.close()
-
+logger.info('exiting thread')
 print "Exiting: main thread"
 
 ######################## EXTRA INFO #########################

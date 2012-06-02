@@ -1,6 +1,17 @@
 #!/usr/bin/python
 
+import logging
+from time import strftime
+
 # fill me in! and take off the .bp
+
+#logging
+timestamp = strftime("%Y-%m-%d-%H:%M:%S")
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M:%S',
+                    filename='logs/%s.log' % timestamp,
+                    filemode='w')
 
 database = 'signatures.db'
 
