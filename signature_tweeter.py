@@ -35,7 +35,8 @@ signature_count = mutable_int()
 parser_thread = parser("parser", 20, wh_url_base, wh_url_id1, wh_url_id2, 
                        twitter_Queue, signature_count, exit_event, database)
 tweetbot = Tweeter(consumer_key, consumer_secret, access_token, access_token_secret, 
-                   msg_preamble, msg_postamble, twitter_Queue, signature_count, exit_event, 10)
+                   msg_preamble, msg_postamble, twitter_Queue, signature_count, 
+                   exit_event, 10, twitter_live_mode)
 
 parser_thread.start()
 tweetbot.start()

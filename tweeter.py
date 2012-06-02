@@ -6,6 +6,7 @@ import Queue
 import logging
 
 logger = logging.getLogger('tweeter')
+max_msg_length = 120
 
 class Tweeter(threading.Thread):
     
@@ -27,7 +28,7 @@ class Tweeter(threading.Thread):
     
     
     def __init__(self, c_key, c_sec, a_tok, a_tok_s, msg_preamble, msg_postamble, 
-                 q, signature_count, exit_event, delay):
+                 q, signature_count, exit_event, delay, live_mode = False):
         threading.Thread.__init__(self)
         self.consumer_key = c_key
         self.consumer_secret = c_sec
@@ -45,6 +46,7 @@ class Tweeter(threading.Thread):
         self.exitflag = False
 
         self.delay = delay
+        self.live_mode = live_mode
 
         self.msg_preamble = msg_preamble
         self.msg_postamble = msg_postamble
@@ -86,7 +88,7 @@ class Tweeter(threading.Thread):
                     nextlength = len((self.msg_preamble % self.signature_count.get()) 
                                      + self.add_to_msg(people, next_person) + self.msg_postamble)
                     logger.debug("possible next msg length: %s" % nextlength)
-                    if nextlength > 120:
+                    if nextlength > max_msg_length:
                         logger.debug("msg was already the correct length. Getting ready to tweet . . .")
                         logger.debug("stowing %s" % old_next_person)
                         old_next_person = next_person
@@ -98,6 +100,7 @@ class Tweeter(threading.Thread):
                     if self.exit_event.wait(1):
                         self.exit()
                 logger.debug('current tweet build: %s' % (self.msg_preamble % self.signature_count.get()) + people + self.msg_postamble) 
+                logger.debug('current tweet length: %s' % str(len((self.msg_preamble % self.signature_count.get()) + people + self.msg_postamble)))
                 #print "DEBUG: tweeter: msg = " + self.msg_preamble + people + self.msg_postamble
             if not self.exitflag:
                 self.tweet((self.msg_preamble % self.signature_count.get()) 
@@ -120,16 +123,17 @@ class Tweeter(threading.Thread):
         # Debugging
         logger.info('tweeting msg: %s' % message)
         logger.debug('tweeting msg length: %s' % str(len(message)))
-        if len(message) > 140:
-            logger.error('tweet to long at %s characters.' % str(len(message)))
+        if len(message) > max_msg_length:
+            logger.error('tweet too long at %s characters.' % str(len(message)))
             return -1
-        else:
-            print "Your tweet: " + message
-            # Alternative
+        #if live_mode is true, actually tweet, otherwise just write tweet to SO
+        if self.live_mode:
             try:
                 self.api.update_status(message)
             except:
-                logging.error("something broke with the update_status_call")
+                logging.error("something broke with the update_status_call. Deal with it.")
+        else:
+            print "Your tweet: " + message
         logger.debug('tweet complete')
         return 0
         

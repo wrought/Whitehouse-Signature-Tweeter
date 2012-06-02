@@ -40,3 +40,7 @@ msg_postamble = "! wh.gov/6TH"
 # Perform a complete sweep?
 # Will stop after full page of existing entries if False
 complete_flag = False
+
+##False if you want to suppress twitter status updates.
+# used for testing and initial database population.
+twitter_live_mode = False
