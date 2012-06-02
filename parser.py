@@ -114,7 +114,7 @@ class parser(threading.Thread):
                                                   signature_dict['first_name'], 
                                                   signature_dict['last_initial']))
             self.c.execute("INSERT INTO signatures VALUES " + insert_values, signature_dict)
-            logging.debug("inserted. commiting . . .")
+            logger.debug("inserted. commiting . . .")
             self.conn.commit()
             return True
         else: 
