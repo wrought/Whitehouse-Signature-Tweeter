@@ -1,6 +1,17 @@
 #!/usr/bin/python
 
+import logging
+from time import strftime
+
 # fill me in! and take off the .bp
+
+#logging
+timestamp = strftime("%Y-%m-%d-%H:%M:%S")
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M:%S',
+                    filename='logs/%s.log' % timestamp,
+                    filemode='w')
 
 database = 'signatures.db'
 
@@ -29,3 +40,7 @@ msg_postamble = "! wh.gov/6TH"
 # Perform a complete sweep?
 # Will stop after full page of existing entries if False
 complete_flag = False
+
+##False if you want to suppress twitter status updates.
+# used for testing and initial database population.
+twitter_live_mode = False
