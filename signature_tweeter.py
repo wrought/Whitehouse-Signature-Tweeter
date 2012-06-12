@@ -41,8 +41,8 @@ tweetbot = Tweeter(consumer_key, consumer_secret, access_token, access_token_sec
 parser_thread.start()
 tweetbot.start()
 
-raw_input("Press enter to end . . .")
-exit_event.set()
+#raw_input("Press enter to end . . .")
+#exit_event.set()
 print "exiting . . ."
 
 parser_thread.join()

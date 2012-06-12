@@ -81,7 +81,7 @@ class parser(threading.Thread):
         logger.debug("requesting %s" % wh_url)
         try:
             r = requests.get(wh_url, timeout = 3)
-        except Timeout:
+        except:
             print "THREAD: parser: requests.get() timed out"
             logger.warning("request to %s timed out" % wh_url)
             return -1
@@ -152,7 +152,7 @@ class parser(threading.Thread):
         else:
             print "No last initials provided"
             logger.debug("No last initials provided\n")
-        print "\n" + clean_name
+        print "\n" + clean_name.encode('utf-8')
         logger.debug("name: " + clean_name.encode('utf-8'))
 
         # break up details into component pieces
