@@ -35,6 +35,19 @@ CREATE TABLE signatures
 ,time_added DATETIME)''')
 
 except sqlite3.OperationalError:
-    print "\n Error: You probably already have a \"" + database + "\" database...\n"
+    print "\n Error: You probably already have a signatures table in \"" + database + "\" database...\n"
     print sys.exc_info()[1]
+
+try:
+    c.execute('''
+CREATE TABLE locations
+(loc_id INTEGER PRIMARY KEY ASC
+,city TEXT
+,state TEXT
+,lat NUMERIC
+,long NUMERIC)''')
+except sqlite3.OperationalError:
+    print "\n Error: You probably already have a locations table in \"" + database + "\" database...\n"
+    print sys.exc_info()[1]
+
 
