@@ -4,6 +4,7 @@ from geopy import geocoders
 import logging
 from config import *
 import sqlite3
+import time
 
 # start logging
 logger = logging.getLogger('geocoder')
@@ -38,6 +39,7 @@ LEFT OUTER JOIN locations as l
 WHERE l.loc_id IS NULL
 
 GROUP BY s.location_city, s.location_state 
+limit 5
 ''')
 
 # @TODO
@@ -70,7 +72,8 @@ for loc in locations:
             print geocode_entry
             logger.info(geocode_result)
             c.execute("INSERT INTO locations VALUES " + insert_values, loc_dict)
-            conn.commit
+            conn.commit()
+            time.sleep(.1)
     except Exception as e:
         print "\n\nSomething goofy, logging...\n\n"
         print e
