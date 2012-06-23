@@ -2,7 +2,7 @@
 
 from geopy import geocoders
 import logging
-import config
+from config import *
 import sqlite3
 
 # start logging
@@ -20,49 +20,54 @@ wikip = geocoders.MediaWiki("http://en.wikipedia.org/wiki/%s")
 # Replace this with sqlite query of unique locations
 #locations = ["Los Angeles, CA", "Hoboken, NJ", ", FL", "Ontario, CA"]
 
+print database
+
 conn = sqlite3.connect(database)
 c = conn.cursor()
 
-c.execute('''
+res = c.execute('''
 SELECT 
-    d.location_city,
-    d.location_state
-FROM locations as l
+    s.location_city,
+    s.location_state
+FROM signatures as s
 
-LEFT JOIN
-    (
-    SELECT
-        location_city,
-        location_state,
-    FROM signatures
-    GROUP BY location_city, location_state
-    ) as d
-    ON l.location_city = d.location_city
-    AND l.location_state = d.location_state
+LEFT OUTER JOIN locations as l
+    ON l.location_city = s.location_city
+    AND l.location_state = s.location_state
 
-WHERE l.loc_id IS NULL 
+WHERE l.loc_id IS NULL
+
+GROUP BY s.location_city, s.location_state 
 ''')
 
-
-locations = []
-
 # @TODO
-'''
-row = c.fetchone()
-while row is not None:
-    loc 
-    locations.append(
-'''
-    
+
+#while row is not None:
+#   locations.append(row)
+
+
+
+insert_values = "(null, :city, :state, :lat, :long)"
 # loop through locations, make request and store in db only if needed
-for loc in locations:
+for loc in c:
+    loc_dict = {"city": loc[0],
+                "state": loc[1],
+                "lat": None,
+                "long": None}
     try: 
-        geocode_result = googl.geocode(loc, exactly_one=False)
-        for geocode_entry in geocode_result:
-             place, (lat, lng) = geocode_entry
-             print geocode_entry
-        logger.info(geocode_result)
+        loc_s = "%s, %s" % loc_dict['city'], loc_dict['state']
+        print loc_s
+        #geocode_result = googl.geocode(loc_s, exactly_one=False)
+        #for geocode_entry in geocode_result:
+       #      place, (lat, lng) = geocode_entry
+       #      print geocode_entry
+       # logger.info(geocode_result)
+       # c.execute("INSERT INTO locations VALUES " + insert_values, location_dict)
+       # conn.commit
     except Exception as e:
         print "\n\nSomething goofy, logging...\n\n"
         logger.exception(e)
     # store in DB here
+
+c.close
+
