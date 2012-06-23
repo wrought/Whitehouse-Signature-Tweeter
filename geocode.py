@@ -7,7 +7,7 @@ import sqlite3
 import time
 
 # start logging
-logger = logging.getLogger('geocoder')
+logger = logging.getLogger('main.geocoder')
 
 # Uses geopy to create objects for each service
 
@@ -70,12 +70,12 @@ for loc in locations:
             loc_dict['lat'] = lat
             loc_dict['long'] = lng
             print geocode_entry
-            logger.info(geocode_result)
+            logger.info("Geo: " + str(geocode_result))
             c.execute("INSERT INTO locations VALUES " + insert_values, loc_dict)
             conn.commit()
-            time.sleep(.1)
+            time.sleep(0.2)
     except Exception as e:
-        print "\n\nSomething goofy, logging...\n\n"
+        print "\n\nSomething goofy, logging...\n"
         print e
         logger.exception(e)
     # store in DB here
