@@ -45,27 +45,35 @@ GROUP BY s.location_city, s.location_state
 #while row is not None:
 #   locations.append(row)
 
-
+locations = []
+for row in c:
+    locations.append(row)
 
 insert_values = "(null, :city, :state, :lat, :long)"
 # loop through locations, make request and store in db only if needed
-for loc in c:
+for loc in locations:
     loc_dict = {"city": loc[0],
                 "state": loc[1],
                 "lat": None,
                 "long": None}
     try: 
-        loc_s = "%s, %s" % loc_dict['city'], loc_dict['state']
-        print loc_s
-        #geocode_result = googl.geocode(loc_s, exactly_one=False)
-        #for geocode_entry in geocode_result:
-       #      place, (lat, lng) = geocode_entry
-       #      print geocode_entry
-       # logger.info(geocode_result)
-       # c.execute("INSERT INTO locations VALUES " + insert_values, location_dict)
-       # conn.commit
+        loc_s = "%s, %s" % (loc[0], loc[1])
+        geocode_result = googl.geocode(loc_s, exactly_one=False)
+        for geocode_entry in geocode_result:
+            loc_dict = {"city": loc[0],
+                        "state": loc[1],
+                        "lat": None,
+                        "long": None}
+            place, (lat, lng) = geocode_entry
+            loc_dict['lat'] = lat
+            loc_dict['long'] = lng
+            print geocode_entry
+            logger.info(geocode_result)
+            c.execute("INSERT INTO locations VALUES " + insert_values, loc_dict)
+            conn.commit
     except Exception as e:
         print "\n\nSomething goofy, logging...\n\n"
+        print e
         logger.exception(e)
     # store in DB here
 
