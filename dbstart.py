@@ -42,8 +42,8 @@ try:
     c.execute('''
 CREATE TABLE locations
 (loc_id INTEGER PRIMARY KEY ASC
-,city TEXT
-,state TEXT
+,location_city TEXT
+,location_state TEXT
 ,lat NUMERIC
 ,long NUMERIC)''')
 except sqlite3.OperationalError:
