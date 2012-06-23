@@ -24,8 +24,25 @@ conn = sqlite3.connect(database)
 c = conn.cursor()
 
 c.execute('''
-select distinct location_city || ", " || location_state as geocode_me from signatures
+SELECT 
+    d.location_city,
+    d.location_state
+FROM locations as l
+
+LEFT JOIN
+    (
+    SELECT
+        location_city,
+        location_state,
+    FROM signatures
+    GROUP BY location_city, location_state
+    ) as d
+    ON l.location_city = d.location_city
+    AND l.location_state = d.location_state
+
+WHERE l.loc_id IS NULL 
 ''')
+
 
 locations = []
 
