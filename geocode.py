@@ -51,32 +51,50 @@ locations = []
 for row in c:
     locations.append(row)
 
+exactly_one_flag = True
+
 insert_values = "(null, :city, :state, :lat, :long)"
 # loop through locations, make request and store in db only if needed
 for loc in locations:
-    loc_dict = {"city": loc[0],
-                "state": loc[1],
-                "lat": None,
-                "long": None}
-    try: 
-        loc_s = "%s, %s" % (loc[0], loc[1])
-        geocode_result = googl.geocode(loc_s, exactly_one=False)
-        for geocode_entry in geocode_result:
+    try:
+        loc_dict = {"city": loc[0],
+                        "state": loc[1],
+                        "lat": None,
+                        "long": None}
+        loc_s = "%s, %s, USA" % (loc[0], loc[1])
+        geocode_result = googl.geocode(loc_s, exactly_one=exactly_one_flag)
+        c.execute("INSERT INTO locations VALUES " + insert_values, loc_dict)
+        if exactly_one_flag:
             loc_dict = {"city": loc[0],
                         "state": loc[1],
                         "lat": None,
                         "long": None}
-            place, (lat, lng) = geocode_entry
+            place, (lat, lng) = geocode_result
             loc_dict['lat'] = lat
             loc_dict['long'] = lng
-            print geocode_entry
+            print geocode_result
             logger.info("Geo: " + str(geocode_result))
-            c.execute("INSERT INTO locations VALUES " + insert_values, loc_dict)
+            c.execute("INSERT INTO responses ")
             conn.commit()
             time.sleep(0.2)
+        else:
+            for geocode_entry in geocode_result:
+                loc_dict = {"city": loc[0],
+                            "state": loc[1],
+                            "lat": None,
+                            "long": None}
+                place, (lat, lng) = geocode_entry
+                loc_dict['lat'] = lat
+                loc_dict['long'] = lng
+                print geocode_entry
+                logger.info("Geo: " + str(geocode_entry))
+                c.execute("INSERT INTO locations VALUES " + insert_values, loc_dict)
+                conn.commit()
+                time.sleep(0.2)
     except Exception as e:
         print "\n\nSomething goofy, logging...\n"
-        print e
+        print e 
+        print "\n" + loc_s
         logger.exception(e)
     # store in DB here
 
