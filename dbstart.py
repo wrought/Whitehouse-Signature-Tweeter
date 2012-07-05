@@ -50,4 +50,14 @@ except sqlite3.OperationalError:
     print "\n Error: You probably already have a locations table in \"" + database + "\" database...\n"
     print sys.exc_info()[1]
 
-
+try:
+    c.execute('''
+CREATE TABLE responses
+(r_id INTEGER PRIMARY KEY ASC
+,loc_id INTEGER
+,response TEXT
+,service TEXT
+,FOREIGN KEY(loc_id) REFERENCES locations(loc_id))''')
+except sqlite3.OperationalError:
+    print "\n Error: You probably already have a responses \"" + database + "\" database...\n"
+    print sys.exc.info()[1]
