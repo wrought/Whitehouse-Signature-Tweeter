@@ -43,9 +43,7 @@ try:
 CREATE TABLE locations
 (loc_id INTEGER PRIMARY KEY ASC
 ,location_city TEXT
-,location_state TEXT
-,lat NUMERIC
-,long NUMERIC)''')
+,location_state TEXT)''')
 except sqlite3.OperationalError:
     print "\n Error: You probably already have a locations table in \"" + database + "\" database...\n"
     print sys.exc_info()[1]
