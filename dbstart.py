@@ -58,4 +58,4 @@ CREATE TABLE responses
 ,FOREIGN KEY(loc_id) REFERENCES locations(loc_id))''')
 except sqlite3.OperationalError:
     print "\n Error: You probably already have a responses \"" + database + "\" database...\n"
-    print sys.exc.info()[1]
+    print sys.exc_info()[1]
