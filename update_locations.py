@@ -20,11 +20,15 @@ SELECT
     upper(s.location_state)
 FROM signatures as s
 
+LEFT OUTER JOIN locations as l_pk
+    ON s.loc_id = l_pk.loc_id
+
 LEFT OUTER JOIN locations as l
     ON l.location_city LIKE s.location_city
     AND l.location_state LIKE s.location_state
 
-WHERE l.loc_id IS NULL
+WHERE (l_pk.loc_id IS NULL OR l_pk.loc_id = -1)
+    AND s.loc_id IS NULL
 
 GROUP BY upper(s.location_city), upper(s.location_state)
 ''')
@@ -47,4 +51,3 @@ for loc in locations:
     conn.commit()
 
 c.close()
-
