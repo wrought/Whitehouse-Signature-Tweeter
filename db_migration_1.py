@@ -5,12 +5,19 @@ import logging
 from config import *
 import sqlite3
 
+'''
+migrates signatures table
+adds: FK loc_id to locations
+removes: location_other
+'''
+
+print "blahhhhho"
 # Connect to db
 conn = sqlite3.connect(database)
 c = conn.cursor()
 
 # start logging
-logger = logging.getLogger('db_migration_1')
+logger = logging.getLogger('main.db_migration_1')
 
 logger.info("renaming signatures to signatures_bu . . .")
 try:
@@ -33,7 +40,7 @@ CREATE TABLE signatures
 ,location_state TEXT
 ,loc_id INTEGER
 ,time_added DATETIME
-,FOREIGN KEY (loc_id) REFERENCES loc_id ''')
+,FOREIGN KEY (loc_id) REFERENCES loc_id) ''')
 
 except Exception as e:
     logger.exception(e)
@@ -44,9 +51,7 @@ except Exception as e:
 try:
     logger.info("pulling data out of signatures_bu")
     c.execute('''
-INSERT INTO signatures VALUES
-(
-  SELECT
+INSERT INTO signatures SELECT
     NULL AS sig_id,
     s.page,
     s.sig_num,
@@ -55,11 +60,11 @@ INSERT INTO signatures VALUES
     s.sig_date,
     s.location_city,
     s.location_state,
-    s.NULL as loc_id,
+    NULL as loc_id,
     s.time_added
-  FROM signatures_bu AS s
-)''')
+  FROM signatures_bu AS s''')
 
+    conn.commit()
 except Exception as e:
     logger.exception(e)
     c.execute("DROP TABLE signatures")
@@ -67,6 +72,6 @@ except Exception as e:
     logger.info("renaming signatures_bu to signatures")
     sys.exit(1)
        
-
+c.close()
 
 
