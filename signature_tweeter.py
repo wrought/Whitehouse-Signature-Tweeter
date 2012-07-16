@@ -25,8 +25,8 @@ class mutable_int:
 #conn = sqlite3.connect(database) # db defined in config.py
 #c = conn.cursor()
 
-#start logger
-logger = logging.getLogger('main')
+#start logger - disabled, moved to config.py
+#logger = logging.getLogger('main')
 
 twitter_Queue = Queue.Queue(10000)
 exit_event = threading.Event()

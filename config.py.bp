@@ -16,6 +16,7 @@ logging.basicConfig(level=logging.DEBUG,
 database = 'signatures.db'
 
 #debug mode
+logger = logging.getLogger('main')
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 logger.addHandler(ch)
