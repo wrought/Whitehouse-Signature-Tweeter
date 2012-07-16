@@ -24,8 +24,8 @@ LEFT OUTER JOIN locations as l_pk
     ON s.loc_id = l_pk.loc_id
 
 LEFT OUTER JOIN locations as l
-    ON l.location_city LIKE s.location_city
-    AND l.location_state LIKE s.location_state
+    ON upper(l.location_city) = upper(s.location_city)
+    AND upper(l.location_state) = upper(s.location_state)
 
 WHERE (l_pk.loc_id IS NULL OR l_pk.loc_id = -1)
     AND s.loc_id IS NULL
